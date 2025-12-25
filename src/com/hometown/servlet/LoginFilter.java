@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
-@WebFilter("/MainServlet") // Only strictly protect MainServlet as requested, or use "/*" with exclusions
+@WebFilter("/MainServlet") // Only strictly protect MainServlet
 public class LoginFilter implements Filter {
 
     public void init(FilterConfig fConfig) throws ServletException {
@@ -21,12 +21,13 @@ public class LoginFilter implements Filter {
 
         boolean loggedIn = (session != null && session.getAttribute("user") != null);
 
-        // Allow access to static resources, login/register pages regardless of filter
-        // mapping if extended later
-        // For now, since mapped to /MainServlet, just check login
+        System.out.println("DEBUG: LoginFilter processing request for " + request.getRequestURI());
+        System.out.println("DEBUG: Session exists? " + (session != null) + ", LoggedIn? " + loggedIn);
+
         if (loggedIn) {
             chain.doFilter(request, response);
         } else {
+            System.out.println("DEBUG: LoginFilter redirecting to login.jsp");
             response.sendRedirect(request.getContextPath() + "/login.jsp");
         }
     }

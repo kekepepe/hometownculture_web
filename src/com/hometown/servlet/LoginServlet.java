@@ -22,11 +22,13 @@ public class LoginServlet extends HttpServlet {
 
         User user = userDAO.login(username, password);
         if (user != null) {
+            System.out.println("DEBUG: User found, creating session for " + user.getUsername());
             HttpSession session = request.getSession();
             session.setAttribute("user", user);
             response.sendRedirect("MainServlet");
         } else {
-            request.setAttribute("error", "Invalid username or password");
+            System.out.println("DEBUG: User not found or error occurred.");
+            request.setAttribute("error", "Invalid username or password (Check server console for details)");
             request.getRequestDispatcher("login.jsp").forward(request, response);
         }
     }

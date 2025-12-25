@@ -21,11 +21,22 @@ public class UserDAO {
     }
 
     public User login(String username, String password) {
-        String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
+        // Use simpler query first to debug
+        String sql = "SELECT id, username, password, email, created_at FROM users WHERE username = ? AND password = ?";
         try (Connection conn = DBUtil.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            // TRIM inputs!
+            if (username != null)
+                username = username.trim();
+            if (password != null)
+                password = password.trim();
+
+            System.out.println("DEBUG: UserDAO.login checking for user: [" + username + "]");
+
             stmt.setString(1, username);
             stmt.setString(2, password);
+
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     User user = new User();
@@ -33,12 +44,24 @@ public class UserDAO {
                     user.setUsername(rs.getString("username"));
                     user.setPassword(rs.getString("password"));
                     user.setEmail(rs.getString("email"));
-                    user.setCreatedAt(rs.getTimestamp("created_at"));
+
+                    // Robust timestamp handling
+                    try {
+                        user.setCreatedAt(rs.getTimestamp("created_at"));
+                    } catch (SQLException e) {
+                        System.err.println("WARN: Could not parse created_at timestamp: " + e.getMessage());
+                        // Continue even if timestamp fails
+                    }
+
+                    System.out.println("DEBUG: UserDAO found user ID: " + user.getId());
                     return user;
+                } else {
+                    System.out.println("DEBUG: UserDAO returned no results for query.");
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            System.err.println("ERROR: UserDAO login exception: " + e.getMessage());
         }
         return null;
     }
